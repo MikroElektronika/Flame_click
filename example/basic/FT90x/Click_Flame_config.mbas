@@ -1,0 +1,5 @@
+module Click_Flame_config
+
+include Click_Flame_types
+
+end.

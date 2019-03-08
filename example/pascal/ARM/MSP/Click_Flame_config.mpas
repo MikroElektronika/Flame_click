@@ -1,0 +1,5 @@
+unit Click_Flame_config;
+
+uses Click_Flame_types;
+
+end.

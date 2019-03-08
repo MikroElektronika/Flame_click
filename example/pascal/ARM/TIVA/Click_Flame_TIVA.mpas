@@ -1,0 +1,92 @@
+{*
+Example for Flame Click
+
+    Date          : Oct 2018.
+    Author        : Nenad Filipovic
+
+Test configuration TIVA :
+    
+    MCU              : TM4C129XNCZAD
+    Dev. Board       : EasyMx PRO v7 for TIVA ARM
+    ARM Compiler ver : v6.0.0.0
+
+---
+
+Description :
+
+The application is composed of three sections :
+
+- System Initialization - Initializes GPIO, set INT pin as input,
+     set AN pin as input.
+- Application Initialization - Initialization driver enable's - GPIO and start write log.
+- Application Task - (code snippet) This is a example which demonstrates the use of Flame Click board.
+     Detect the flame( fire ) near the PT334-6B silicon phototransistor sensor,
+     turn on flame led on Click board and write log.
+     Results are being sent to the Usart Terminal where you can track their changes.
+     All data logs on usb uart when flame is detected.
+
+Additional Functions :
+
+- UART
+
+*}
+program Click_Flame_TIVA;
+
+uses Click_Flame_types, Click_Flame_config;
+
+var
+    flameState : uint8_t; 
+    flameStateOld : uint8_t; 
+    
+procedure systemInit(); 
+begin
+
+    mikrobus_gpioInit(_MIKROBUS1, _MIKROBUS_INT_PIN, _GPIO_INPUT); 
+    mikrobus_gpioInit(_MIKROBUS1, _MIKROBUS_AN_PIN, _GPIO_INPUT); 
+    mikrobus_logInit(_MIKROBUS2, 9600); 
+    Delay_100ms(); 
+
+end;
+
+procedure applicationInit(); 
+begin
+
+    flame_gpioDriverInit(T_FLAME_P(@_MIKROBUS1_GPIO)); 
+    mikrobus_logWrite('---------------', _LOG_LINE); 
+    mikrobus_logWrite('  Flame Click  ', _LOG_LINE); 
+    mikrobus_logWrite('---------------', _LOG_LINE); 
+    Delay_100ms(); 
+
+end;
+
+procedure applicationTask(); 
+begin
+
+    flameState := flame_checkStatus(); 
+    if (((flameState = 1) and (flameStateOld = 0))) then 
+    begin
+        mikrobus_logWrite('  ~  FLAME   ~', _LOG_LINE); 
+        mikrobus_logWrite('', _LOG_LINE); 
+        flameStateOld := 1; 
+    end; 
+    if (((flameState = 0) and (flameStateOld = 1))) then 
+    begin
+        mikrobus_logWrite('   NO FLAME', _LOG_LINE); 
+        mikrobus_logWrite('', _LOG_LINE); 
+        flameStateOld := 0; 
+    end; 
+
+end;
+
+begin
+    flameState := 0;
+    flameStateOld := 1;
+
+    systemInit(); 
+    applicationInit(); 
+    while (1) do 
+    begin 
+        applicationTask(); 
+    end;
+
+end.
